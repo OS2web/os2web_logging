@@ -1,0 +1,8 @@
+os2web_logging.settings:
+  title: Settings
+  route_name: os2web_logging.settings
+  base_route: os2web_logging.settings
+os2web_logging.status:
+  title: Status
+  route_name: os2web_logging.status
+  base_route: os2web_logging.settings

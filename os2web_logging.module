@@ -1,0 +1,185 @@
+<?php
+
+/**
+ * @file
+ * OS2Web Logging module file.
+ */
+
+use Drupal\Component\Datetime\DateTimePlus;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\os2web_logging\Controller\LoggingController;
+use Drupal\os2web_logging\Form\SettingsForm;
+
+/**
+ * Implements hook_ENTITY_TYPE_view().
+ */
+function os2web_logging_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
+  // Ignoring requests from CLI.
+  if (PHP_SAPI === 'cli') {
+    return;
+  }
+
+  $config = \Drupal::config(SettingsForm::$configName);
+  if ($node_types = $config->get('logged_node_types')) {
+    if (in_array($entity->getType(), $node_types, TRUE)) {
+
+      // Log entry.
+      $logger = \Drupal::logger('os2web_logging.node_access');
+      $logger->info('Node loaded', ['sid' => $entity->id()]);
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function os2web_logging_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if ($form['#id'] == 'views-exposed-form-os2web-logging-access-logs-os2web-logging-logs-page') {
+    $form['from']['#type'] = 'datetime';
+    $form['to']['#type'] = 'datetime';
+
+    $request = \Drupal::request();
+
+    // Setting FROM date, if it's empty.
+    if (is_null($request->get('from'))) {
+      $userInput = $form_state->getUserInput();
+
+      $lastWeek = new DateTimePlus('-7 days');
+      $userInput['from'] = [
+        'date' => $lastWeek->format('Y-m-d'),
+        'time' => $lastWeek->format('H:i:s'),
+      ];
+
+      $form_state->setUserInput($userInput);
+    }
+
+    // Setting TO date, if it's empty.
+    if (is_null($request->get('to'))) {
+      $userInput = $form_state->getUserInput();
+
+      $now = new DateTimePlus('now');
+      $userInput['to'] = [
+        'date' => $now->format('Y-m-d'),
+        'time' => $now->format('H:i:s'),
+      ];
+
+      $form_state->setUserInput($userInput);
+    }
+  }
+
+}
+
+/**
+ * Implements hook_mail().
+ */
+function os2web_logging_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'os2web_logging_mail':
+      $message['from'] = $params['from'];
+      $message['subject'] = $params['subject'];
+      $message['body'][] = $params['body'];
+
+      break;
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function os2web_logging_cron() {
+  $last_cleanup_run_ts = \Drupal::state()
+    ->get('os2web_logging.last_cleanup_run', 0);
+
+  $last_cleanup_run = DateTimePlus::createFromTimestamp($last_cleanup_run_ts);
+  $now = DateTimePlus::createFromTimestamp(time());
+
+  $diff = $last_cleanup_run->diff($now);
+
+  // Proceed if the last cleanup happened more than a day ago.
+  if ($diff->days > 0) {
+    // Do a cleanup.
+    _os2web_logging_dblogs_cleanup();
+
+    \Drupal::state()
+      ->set('os2web_logging.last_cleanup_run', time());
+  }
+
+  // Checking requirements.
+  $requirements = LoggingController::getCheckedRequirements();
+  if (!empty($requirements['error'])) {
+    _os2web_logging_send_status_failed_email($requirements['error']);
+  }
+}
+
+/**
+ * Performs deletion of the AccessLogs that are older than allowed time.
+ */
+function _os2web_logging_dblogs_cleanup() {
+  $config = \Drupal::config(SettingsForm::$configName);
+
+  $dblogs_store_period = $config->get('dblogs_store_period');
+  $acceptedStorageDate = new DateTimePlus("-$dblogs_store_period days");
+
+  // Getting all access logs before accepted storage date.
+  $query = \Drupal::entityQuery('os2web_logging_access_log')
+    ->condition('created', $acceptedStorageDate->getTimestamp(), '<');
+  $logIds = $query->execute();
+
+  if (!empty($logIds)) {
+    $storage = \Drupal::entityTypeManager()->getStorage('os2web_logging_access_log');
+
+    // Deleting logs entity in chunks of 100.
+    foreach (array_chunk($logIds, 100) as $chunk) {
+      $logsToDelete = $storage->loadMultiple($chunk);
+      $storage->delete($logsToDelete);
+    }
+  }
+}
+
+/**
+ * Sends email to site email with error report.
+ *
+ * @param array $errors
+ *   Array of errors formatted as
+ *   [
+ *      0 => [
+ *         'title' => 'Requirement title',
+ *         'value' => 'Requirement value',
+ *         'description' => 'Additional info'
+ *      ],
+ *   ].
+ */
+function _os2web_logging_send_status_failed_email(array $errors) {
+  $errors_combined = [];
+  foreach ($errors as $error) {
+    $errors_combined[] = $error['title'] . ' - ' . $error['value'];
+  }
+
+  $errors_build = [
+    '#theme' => 'item_list',
+    '#title' => t('Errors'),
+    '#items' => $errors_combined,
+  ];
+  $errors_build = \Drupal::service('renderer')->renderPlain($errors_build);
+
+  $body = t('OS2Web Logging status check failed with the following errors: @errors', ['@errors' => $errors_build]);
+
+  $siteName = \Drupal::config('system.site')->get('name');
+  $siteMail = \Drupal::config('system.site')->get('mail');
+  $messageVariables = [
+    'to' => $siteMail,
+    'from' => "$siteName <$siteMail>",
+    'subject' => 'OS2Web Logging status check FAILED',
+    'body' => $body,
+  ];
+
+  /** @var \Drupal\Core\Mail\MailManagerInterface $mailManager */
+  $mailManager = \Drupal::service('plugin.manager.mail');
+  $langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
+
+  if (!$mailManager->mail('os2web_logging', 'os2web_logging_mail', $siteMail, $langcode, $messageVariables)) {
+    \Drupal::logger('os2web_logging')->warning(t('There was a problem sending email to %email', ['%email' => $siteMail]));
+  }
+}

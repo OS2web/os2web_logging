@@ -1,0 +1,21 @@
+parameters:
+  monolog.channel_handlers:
+    # If not specified use the default handlers.
+    default: ['os2web_logging_watchdog']
+    # Log php channel to web server's error log.
+    php: ['error_log']
+    os2web_logging.node_access:
+      handlers: ['os2web_logging_node_access_file', 'drupal.os2web_logging_node_access_dblog']
+      formatter: 'json'
+
+services:
+  monolog.handler.os2web_logging_watchdog:
+    class: Monolog\Handler\RotatingFileHandler
+    arguments: ['private://logs/os2web_logging_watchdog.log', 60, 'monolog.level.debug']
+  monolog.handler.os2web_logging_node_access_file:
+    class: Monolog\Handler\RotatingFileHandler
+    arguments: ['private://logs/os2web_logging_node_access.log', 60, 'monolog.level.debug']
+  logger.os2web_logging_node_access_dblog:
+    class: Drupal\os2web_logging\Logger\NodeAccessDbLog
+    tags:
+      - { name: logger }

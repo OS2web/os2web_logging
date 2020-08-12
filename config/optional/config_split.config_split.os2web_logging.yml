@@ -1,0 +1,17 @@
+langcode: da
+status: true
+dependencies: {  }
+id: os2web_logging
+label: 'OS2Web Logging'
+description: ''
+folder: modules/contrib/os2web_logging/config/install
+module: {  }
+theme: {  }
+blacklist:
+  - 'os2web_logging*'
+  - '*os2web_logging'
+  - '*os2web_logging*'
+graylist: {  }
+graylist_dependents: true
+graylist_skip_equal: true
+weight: 0
