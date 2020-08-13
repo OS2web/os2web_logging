@@ -22,7 +22,7 @@ class NodeAccessDbLog implements LoggerInterface {
       'message' => $message,
       'ip' => mb_substr($context['ip'], 0, 15),
       'request_uri' => $context['request_uri'],
-      'timestamp' => $context['timestamp'],
+      'created' => $context['timestamp'],
     ])->save();
   }
 

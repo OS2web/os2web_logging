@@ -16,8 +16,8 @@ use Drupal\Core\Entity\EntityTypeInterface;
  *   label = @Translation("OS2Web Logging Access Log"),
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "list_builder" = "Drupal\os2web_logging\AccessLogListBuilder",
- *     "views_data" = "Drupal\os2web_logging\Entity\AccessLogViewsData",
+ *     "list_builder" = "Drupal\Core\Entity\EntityListBuilder",
+ *     "views_data" = "Drupal\views\EntityViewsData",
  *   },
  *   base_table = "os2web_logging_access_log",
  *   translatable = FALSE,
