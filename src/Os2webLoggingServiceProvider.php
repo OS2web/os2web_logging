@@ -15,6 +15,13 @@ class Os2webLoggingServiceProvider extends ServiceProviderBase {
    * {@inheritdoc}
    */
   public function alter(ContainerBuilder $container) {
+    // Skipping calls when container is not ready.
+    // We need the container to be reader in order to fetch module
+    // configuration.
+    if (!\Drupal::hasContainer()) {
+      return;
+    }
+
     $config = \Drupal::config(SettingsForm::$configName);
     $store_period = $config->get('files_store_period');
 
