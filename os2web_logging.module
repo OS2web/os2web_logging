@@ -54,21 +54,7 @@ function os2web_logging_form_views_exposed_form_alter(&$form, FormStateInterface
 
       $form_state->setUserInput($userInput);
     }
-
-    // Setting TO date, if it's empty.
-    if (is_null($request->get('to'))) {
-      $userInput = $form_state->getUserInput();
-
-      $now = new DateTimePlus('now');
-      $userInput['to'] = [
-        'date' => $now->format('Y-m-d'),
-        'time' => $now->format('H:i:s'),
-      ];
-
-      $form_state->setUserInput($userInput);
-    }
   }
-
 }
 
 /**
