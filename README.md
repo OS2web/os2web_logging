@@ -11,7 +11,10 @@ When node is access this is logged by the module.
 Logs are stored in two places: database + files.
 
 After logs are enabled and configured, they are shown here: `/admin/reports/os2web-logging-access-logs`
-Additionally saved in file `private/logs/os2web_logging_node_access.log`
+
+File logs are saved in directory: `../logs/`
+
+It is **required** that this directory exists and is writable.
 
 ## Additional settings
 Settings are available under `admin/config/content/os2web-borgerdk`
