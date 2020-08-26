@@ -99,7 +99,7 @@ class SettingsForm extends ConfigFormBase {
     // Checking file if we have import file.
     $importedLogs = $this->importLogsFromFile();
 
-    if (!$importedLogs) {
+    if ($importedLogs) {
       // To prevent old logs from being deleted on next cron (might happen at
       // any time), update the last os2web_logging.last_cleanup_run.
       //

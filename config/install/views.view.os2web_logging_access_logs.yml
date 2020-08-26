@@ -1,4 +1,3 @@
-uuid: 9070bac8-1ebe-4c8d-a923-03bb5cc36823
 langcode: da
 status: true
 dependencies:
@@ -122,8 +121,27 @@ display:
           summary: ''
           description: ''
           columns:
+            created: created
+            title: title
             message: message
+            name: name
+            ip: ip
+            request_uri: request_uri
           info:
+            created:
+              sortable: true
+              default_sort_order: desc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            title:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
             message:
               sortable: false
               default_sort_order: asc
@@ -131,7 +149,28 @@ display:
               separator: ''
               empty_column: false
               responsive: ''
-          default: '-1'
+            name:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            ip:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            request_uri:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+          default: created
           empty_table: false
       row:
         type: fields
