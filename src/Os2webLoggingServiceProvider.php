@@ -23,13 +23,23 @@ class Os2webLoggingServiceProvider extends ServiceProviderBase {
     }
 
     $config = \Drupal::config(SettingsForm::$configName);
-    $store_period = $config->get('files_store_period');
+
+    $logger = $container->getDefinition('monolog.handler.os2web_logging_node_access_file');
+
+    // Updating store path for logger.
+    $logs_path = $config->get('files_log_path');
+    if (!empty($logs_path)) {
+      $logs_path .= '/os2web_logging_node_access.log';
+      $logger->replaceArgument(0, $logs_path);
+    }
 
     // Updating store period for logger.
+    $store_period = $config->get('files_store_period');
     if ($store_period) {
-      $logger = $container->getDefinition('monolog.handler.os2web_logging_node_access_file');
       $logger->replaceArgument(1, $store_period);
     }
+
+    error_log(print_r($logger, 1));
   }
 
 }

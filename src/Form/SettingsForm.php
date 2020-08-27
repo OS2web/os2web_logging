@@ -3,6 +3,7 @@
 namespace Drupal\os2web_logging\Form;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\Entity\NodeType;
@@ -59,7 +60,14 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('logged_node_types') ? $config->get('logged_node_types') : [],
     ];
 
-    $form['dblogs_store_period'] = [
+    $form['dblogs_detail'] = [
+      '#type' => 'details',
+      '#title' => $this
+        ->t('Database logs'),
+      '#open' => TRUE,
+    ];
+
+    $form['dblogs_detail']['dblogs_store_period'] = [
       '#type' => 'number',
       '#title' => $this->t('Store database logs for this period'),
       '#field_suffix' => $this->t('days'),
@@ -68,7 +76,14 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('dblogs_store_period') ? $config->get('dblogs_store_period') : 180,
     ];
 
-    $form['files_store_period'] = [
+    $form['file_logs_detail'] = [
+      '#type' => 'details',
+      '#title' => $this
+        ->t('File logs'),
+      '#open' => TRUE,
+    ];
+
+    $form['file_logs_detail']['files_store_period'] = [
       '#type' => 'number',
       '#title' => $this->t('Store log files for this period'),
       '#field_suffix' => $this->t('days'),
@@ -77,15 +92,35 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('files_store_period') ? $config->get('files_store_period') : 180,
     ];
 
+    $form['file_logs_detail']['files_log_path'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Store log files directory'),
+      '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
+      '#default_value' => $config->get('files_log_path') ? $config->get('files_log_path') : '../logs',
+    ];
+
     $form['logs_import_file_detail'] = [
       '#type' => 'details',
       '#title' => $this
         ->t('Logs import'),
     ];
 
+    $storedLogFiles = \Drupal::service('file_system')->scanDirectory($config->get('files_log_path'), '/os2web_logging_node_access-\d{4}-\d{2}-\d{2}\.(log|gz)/');
+
+    $options = [];
+    foreach ($storedLogFiles as $file) {
+      $options[$file->uri] = $file->filename;
+    }
+    $form['logs_import_file_detail']['logs_import_files_select'] = array(
+      '#type' => 'checkboxes',
+      '#options' => $options,
+      '#title' => $this->t('Import from existing files'),
+      '#description' => $this->t('Archived log files will be automatically extracted'),
+    );
+
     $form['logs_import_file_detail']['logs_import_file'] = [
       '#type' => 'file',
-      '#title' => $this->t('Import logs from file'),
+      '#title' => $this->t('Import logs from uploaded file'),
       '#description' => $this->t('Logs will be imported form the uploaded file (.log or .json)'),
     ];
 
@@ -95,22 +130,60 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Checking file if we have import file.
-    $importedLogs = $this->importLogsFromFile();
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    parent::validateForm($form, $form_state);
 
-    if ($importedLogs) {
-      // To prevent old logs from being deleted on next cron (might happen at
-      // any time), update the last os2web_logging.last_cleanup_run.
-      //
-      // This will make logs stored in the database for the next 24h.
-      \Drupal::state()
-        ->set('os2web_logging.last_cleanup_run', time());
+    $files_log_path = $form_state->getValue('files_log_path');
+
+    $exists = \Drupal::service('file_system')->prepareDirectory($files_log_path, FileSystemInterface::MODIFY_PERMISSIONS);
+    if (!$exists) {
+      $form_state->setErrorByName('files_log_path', t('Directory does not exist or is not writable %dir', ['%dir' => $files_log_path]));
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    // Storing files to import.
+    $importFileUris = [];
+
+    // Checking file if we have an uploaded file to import from.
+    $uploadedFile = $this->uploadImportFile();
+
+    if ($uploadedFile) {
+      \Drupal::messenger()
+        ->addMessage(t('File uploaded successfully: @file', ['@file' => $uploadedFile->getFileUri()]));
+      $importFileUris[] = $uploadedFile->getFileUri();
+    }
+
+    // Checking if we have any files selected to import from.
+    if ($selectedFiles = $form_state->getValue('logs_import_files_select')) {
+      foreach ($selectedFiles as $uri) {
+        if ($uri) {
+          $importFileUris[] = $uri;
+        }
+      }
+      $form_state->unsetValue('logs_import_files_select');
+    }
+
+    // Import logs from the files.
+    if (!empty($importFileUris)) {
+      $importedLogs = $this->importLogsFromUris($importFileUris);
+      if ($importedLogs) {
+        // To prevent old logs from being deleted on next cron (might happen at
+        // any time), update the last os2web_logging.last_cleanup_run.
+        //
+        // This will make logs stored in the database for the next 24h.
+        \Drupal::state()
+          ->set('os2web_logging.last_cleanup_run', time());
+      }
     }
 
     // Saving values.
     $config = $this->config(SettingsForm::$configName);
     $old_files_store_period = $config->get('files_store_period');
+    $old_files_store_path = $config->get('files_log_path');
 
     $values = $form_state->getValues();
     foreach ($values as $key => $value) {
@@ -118,9 +191,10 @@ class SettingsForm extends ConfigFormBase {
     }
     $config->save();
 
-    // Rebuilding cache only if 'files_store_period' changed.
-    // New setting requires cache to be rebuilt.
-    if ($old_files_store_period != $config->get('files_store_period')) {
+    // Rebuilding cache only if 'files_store_period' or 'files_log_path'
+    // changed. New setting requires cache to be rebuilt.
+    if ($old_files_store_period != $config->get('files_store_period') ||
+      $old_files_store_path != $config->get('files_log_path')) {
       // Rebuild module and theme data.
       $module_data = \Drupal::service('extension.list.module')->getList();
 
@@ -139,66 +213,74 @@ class SettingsForm extends ConfigFormBase {
   }
 
   /**
-   * Import logs from file.
+   * Uploads file from field logs_import_file.
    *
-   * Reads the uploaded file to 'logs_import_file' form fields.
-   * Creates logs entries.
-   *
-   * @return int
-   *   Number of imported logs entities.
-   *
-   * @throws \Drupal\Core\Entity\EntityStorageException
+   * @return \Drupal\file\Entity\File|null
+   *   Uploaded file or NULL.
    */
-  protected function importLogsFromFile() {
-    $lines_counter = 0;
-    $imported_items_counter = 0;
-
+  protected function uploadImportFile() {
     // Add validator for your file type etc.
     $validators = ['file_validate_extensions' => ['log', 'json']];
 
     /** @var \Drupal\file\Entity\File $file */
     $file = file_save_upload('logs_import_file', $validators, FALSE, 0);
 
-    if (!$file) {
-      return $imported_items_counter;
-    }
+    return $file;
+  }
 
-    \Drupal::messenger()->addMessage(t('File uploaded successfully: @file', ['@file' => $file->getFileUri()]));
+  /**
+   * Imports logs from file.
+   *
+   * Reads the files from provided URIs and creates log entries.
+   *
+   * @param array $uris
+   *   Array of files uris.
+   *
+   * @return int
+   *   Number of imported logs entities.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  protected function importLogsFromUris(array $uris) {
+    $lines_counter = 0;
+    $imported_items_counter = 0;
 
-    $handle = fopen($file->getFileUri(), "r");
-    if ($handle) {
-      while (($line = fgets($handle)) !== FALSE) {
-        $lines_counter++;
-        $lineJson = Json::decode($line);
+    foreach ($uris as $uri) {
+      $handle = fopen($uri, "r");
+      if ($handle) {
+        while (($line = fgets($handle)) !== FALSE) {
+          $lines_counter++;
+          $lineJson = Json::decode($line);
 
-        // Discarding messages that do not follow format.
-        if (empty($lineJson) ||
-          !array_key_exists('context', $lineJson) ||
-          !array_key_exists('extra', $lineJson) ||
-          !array_key_exists('message', $lineJson) ||
-          !array_key_exists('datetime', $lineJson)) {
-          continue;
+          // Discarding messages that do not follow format.
+          if (empty($lineJson) ||
+            !array_key_exists('context', $lineJson) ||
+            !array_key_exists('extra', $lineJson) ||
+            !array_key_exists('message', $lineJson) ||
+            !array_key_exists('datetime', $lineJson)) {
+            continue;
+          }
+
+          // Create new log entry.
+          $saved = AccessLog::create([
+            'sid' => $lineJson['context']['sid'],
+            'uid' => $lineJson['extra']['uid'],
+            'message' => $lineJson['message'],
+            'ip' => $lineJson['extra']['ip'],
+            'request_uri' => $lineJson['extra']['request_uri'],
+            'created' => strtotime($lineJson['datetime']['date']),
+          ])->save();
+          if ($saved) {
+            $imported_items_counter++;
+          }
         }
+        fclose($handle);
 
-        // Create new log entry.
-        $saved = AccessLog::create([
-          'sid' => $lineJson['context']['sid'],
-          'uid' => $lineJson['extra']['uid'],
-          'message' => $lineJson['message'],
-          'ip' => $lineJson['extra']['ip'],
-          'request_uri' => $lineJson['extra']['request_uri'],
-          'created' => strtotime($lineJson['datetime']['date']),
-        ])->save();
-        if ($saved) {
-          $imported_items_counter++;
-        }
+        \Drupal::messenger()->addMessage(t('Log messages @imported out of @total were imported', ['@imported' => $imported_items_counter, '@total' => $lines_counter]));
       }
-      fclose($handle);
-
-      \Drupal::messenger()->addMessage(t('Log messages @imported out of @total were imported', ['@imported' => $imported_items_counter, '@total' => $lines_counter]));
-    }
-    else {
-      \Drupal::messenger()->addError(t('Could not import from file @file', ['@file' => $file->getFileUri()]));
+      else {
+        \Drupal::messenger()->addError(t('Could not import from file @file', ['@file' => $uri]));
+      }
     }
 
     return $imported_items_counter;
