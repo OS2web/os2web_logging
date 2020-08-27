@@ -111,12 +111,12 @@ class SettingsForm extends ConfigFormBase {
     foreach ($storedLogFiles as $file) {
       $options[$file->uri] = $file->filename;
     }
-    $form['logs_import_file_detail']['logs_import_files_select'] = array(
+    $form['logs_import_file_detail']['logs_import_files_select'] = [
       '#type' => 'checkboxes',
       '#options' => $options,
       '#title' => $this->t('Import from existing files'),
       '#description' => $this->t('Archived log files will be automatically extracted'),
-    );
+    ];
 
     $form['logs_import_file_detail']['logs_import_file'] = [
       '#type' => 'file',
