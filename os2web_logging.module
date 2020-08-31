@@ -22,6 +22,14 @@ function os2web_logging_node_view(array &$build, EntityInterface $entity, Entity
   }
 
   $config = \Drupal::config(SettingsForm::$configName);
+
+  // Ignore anonymous user.
+  $logAnonymUser = $config->get('log_anonymous_user');
+  if (!$logAnonymUser && \Drupal::currentUser()->isAnonymous()) {
+    return;
+  }
+
+  // Filter on node type.
   if ($node_types = $config->get('logged_node_types')) {
     if (in_array($entity->getType(), $node_types, TRUE)) {
 

@@ -60,6 +60,13 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('logged_node_types') ? $config->get('logged_node_types') : [],
     ];
 
+    $form['log_anonymous_user'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Log anonymous user actions'),
+      '#description' => $this->t('If anonymous user actions are being logged'),
+      '#default_value' => $config->get('log_anonymous_user'),
+    ];
+
     $form['dblogs_detail'] = [
       '#type' => 'details',
       '#title' => $this
@@ -246,9 +253,9 @@ class SettingsForm extends ConfigFormBase {
     $imported_items_counter = 0;
 
     foreach ($uris as $uri) {
-      $handle = fopen($uri, "r");
+      $handle = gzopen($uri, "r");
       if ($handle) {
-        while (($line = fgets($handle)) !== FALSE) {
+        while (($line = gzgets($handle)) !== FALSE) {
           $lines_counter++;
           $lineJson = Json::decode($line);
 
