@@ -119,6 +119,7 @@ class SettingsForm extends ConfigFormBase {
       foreach ($storedLogFiles as $file) {
         $options[$file->uri] = $file->filename;
       }
+      arsort($options);
     }
 
     $form['logs_import_file_detail']['logs_import_files_select'] = [
