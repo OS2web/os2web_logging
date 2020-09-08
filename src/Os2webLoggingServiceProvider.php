@@ -38,8 +38,6 @@ class Os2webLoggingServiceProvider extends ServiceProviderBase {
     if ($store_period) {
       $logger->replaceArgument(1, $store_period);
     }
-
-    error_log(print_r($logger, 1));
   }
 
 }

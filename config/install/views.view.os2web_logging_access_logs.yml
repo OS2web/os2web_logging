@@ -1,4 +1,3 @@
-uuid: 9070bac8-1ebe-4c8d-a923-03bb5cc36823
 langcode: da
 status: true
 dependencies:
@@ -9,8 +8,6 @@ dependencies:
     - node
     - os2web_logging
     - user
-_core:
-  default_config_hash: JUSm8HUTNbbKl20MMuKti5kuOAsr1F3G7DzK55SsKZA
 id: os2web_logging_access_logs
 label: 'OS2Web Logging Logs'
 module: views
