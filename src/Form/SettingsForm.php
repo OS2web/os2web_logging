@@ -112,12 +112,15 @@ class SettingsForm extends ConfigFormBase {
         ->t('Logs import'),
     ];
 
-    $storedLogFiles = \Drupal::service('file_system')->scanDirectory($config->get('files_log_path'), '/os2web_logging_node_access-\d{4}-\d{2}-\d{2}\.(log|gz)/');
-
     $options = [];
-    foreach ($storedLogFiles as $file) {
-      $options[$file->uri] = $file->filename;
+    if ($config->get('files_log_path')) {
+      $storedLogFiles = \Drupal::service('file_system')->scanDirectory($config->get('files_log_path'), '/os2web_logging_node_access-\d{4}-\d{2}-\d{2}\.(log|gz)/');
+
+      foreach ($storedLogFiles as $file) {
+        $options[$file->uri] = $file->filename;
+      }
     }
+
     $form['logs_import_file_detail']['logs_import_files_select'] = [
       '#type' => 'checkboxes',
       '#options' => $options,
