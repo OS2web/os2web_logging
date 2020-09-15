@@ -30,7 +30,7 @@ install:
   - cd drupal
   - DRUPAL_ROOT=$(pwd)/web
   - export REPOSITORIES='"repositories":\ \['
-  - export REPOSITORIES_REPLACE='"repositories":\[\{"type":"path","url":"..\/os2web_meetings","options":\{"symlink":false\}\},'
+  - export REPOSITORIES_REPLACE='"repositories":\[\{"type":"path","url":"..\/os2web_logging","options":\{"symlink":false\}\},'
   - export REQUIRE='"require":\ {'
   - export REQUIRE_REPLACE='"require":{"os2web\/os2web_logging":"\*",'
   - sed -i "s/$REPOSITORIES/$REPOSITORIES_REPLACE/g" composer.json
