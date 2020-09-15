@@ -7,9 +7,7 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\os2web_logging\Form\SettingsForm;
 
 /**
- * Class LoggingController.
- *
- * @package Drupal\os2web_logging\Controller
+ * Provides status page.
  */
 class LoggingController extends ControllerBase {
 

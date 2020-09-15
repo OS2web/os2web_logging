@@ -10,9 +10,7 @@ use Drupal\node\Entity\NodeType;
 use Drupal\os2web_logging\Entity\AccessLog;
 
 /**
- * Class SettingsForm.
- *
- * @package Drupal\os2web_logging\Form
+ * Logging settings form.
  */
 class SettingsForm extends ConfigFormBase {
 
@@ -287,10 +285,15 @@ class SettingsForm extends ConfigFormBase {
         }
         fclose($handle);
 
-        \Drupal::messenger()->addMessage(t('Log messages @imported out of @total were imported', ['@imported' => $imported_items_counter, '@total' => $lines_counter]));
+        \Drupal::messenger()
+          ->addMessage(t('Log messages @imported out of @total were imported', [
+            '@imported' => $imported_items_counter,
+            '@total' => $lines_counter,
+          ]));
       }
       else {
-        \Drupal::messenger()->addError(t('Could not import from file @file', ['@file' => $uri]));
+        \Drupal::messenger()
+          ->addError(t('Could not import from file @file', ['@file' => $uri]));
       }
     }
 
