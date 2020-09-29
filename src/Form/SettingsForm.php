@@ -6,6 +6,8 @@ use Drupal\Component\Serialization\Json;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 use Drupal\node\Entity\NodeType;
 use Drupal\os2web_logging\Entity\AccessLog;
 
@@ -40,6 +42,14 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config(SettingsForm::$configName);
+
+    // Set up the link.
+    $url = Url::fromUri('internal:/admin/reports/os2web-logging-access-logs');
+    $link = Link::fromTextAndUrl('reports', $url);
+
+    $form[] = [
+      '#markup' => $this->t('Logs messages can be seen on the %reports page', ['%reports' => $link->toString()]),
+    ];
 
     $node_types = NodeType::loadMultiple();
 
@@ -93,6 +103,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Store log files for this period'),
       '#field_suffix' => $this->t('days'),
       '#size' => 5,
+      '#min' => 180,
       '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
       '#default_value' => $config->get('files_store_period') ? $config->get('files_store_period') : 180,
     ];
