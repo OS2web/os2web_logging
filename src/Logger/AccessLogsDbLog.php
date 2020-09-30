@@ -7,9 +7,9 @@ use Drupal\os2web_logging\Entity\AccessLog;
 use Psr\Log\LoggerInterface;
 
 /**
- * Logs events in the watchdog database table.
+ * Logs events in the database table.
  */
-class NodeAccessDbLog implements LoggerInterface {
+class AccessLogsDbLog implements LoggerInterface {
   use RfcLoggerTrait;
 
   /**

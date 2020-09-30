@@ -7,7 +7,7 @@ use Drupal\Core\DependencyInjection\ServiceProviderBase;
 use Drupal\os2web_logging\Form\SettingsForm;
 
 /**
- * Overrides the monolog.handler.os2web_logging_node_access_file service.
+ * Overrides the monolog.handler.os2web_logging_access_log_file service.
  */
 class Os2webLoggingServiceProvider extends ServiceProviderBase {
 
@@ -24,12 +24,12 @@ class Os2webLoggingServiceProvider extends ServiceProviderBase {
 
     $config = \Drupal::config(SettingsForm::$configName);
 
-    $logger = $container->getDefinition('monolog.handler.os2web_logging_node_access_file');
+    $logger = $container->getDefinition('monolog.handler.os2web_logging_access_log_file');
 
     // Updating store path for logger.
     $logs_path = $config->get('files_log_path');
     if (!empty($logs_path)) {
-      $logs_path .= '/os2web_logging_node_access.log';
+      $logs_path .= '/os2web_logging_access_log.log';
       $logger->replaceArgument(0, $logs_path);
     }
 

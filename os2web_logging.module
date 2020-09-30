@@ -6,9 +6,11 @@
  */
 
 use Drupal\Component\Datetime\DateTimePlus;
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\os2web_logging\Controller\LoggingController;
 use Drupal\os2web_logging\Form\SettingsForm;
 
@@ -34,10 +36,45 @@ function os2web_logging_node_view(array &$build, EntityInterface $entity, Entity
     if (in_array($entity->getType(), $node_types, TRUE)) {
 
       // Log entry.
-      $logger = \Drupal::logger('os2web_logging.node_access');
+      $logger = \Drupal::logger('os2web_logging.access_log');
       $logger->info('Node loaded', ['sid' => $entity->id()]);
     }
   }
+}
+
+/**
+ * Implements hook_webform_element_access().
+ */
+function os2web_logging_webform_element_access($operation, array &$element, AccountInterface $account = NULL, array $context = []) {
+  // Ignoring requests from CLI.
+  if (PHP_SAPI === 'cli') {
+    return AccessResult::neutral();
+  }
+
+  // Ignoring if operation is not view or update.
+  if ($operation != 'view' && $operation != 'update') {
+    return AccessResult::neutral();
+  }
+
+  $config = \Drupal::config(SettingsForm::$configName);
+
+  // Ignore anonymous user.
+  $logAnonymUser = $config->get('log_anonymous_user');
+  if (!$logAnonymUser && \Drupal::currentUser()->isAnonymous()) {
+    return AccessResult::neutral();
+  }
+
+  // Filter on element type.
+  if ($webform_elements = $config->get('logged_webform_elements')) {
+    if (in_array($element['#type'], $webform_elements, TRUE)) {
+      // Log entry.
+      $logger = \Drupal::logger('os2web_logging.access_log');
+      $logger->info('CPR accessed');
+    }
+  }
+
+  // As we are hooking into access, we make sure the return value is not altered.
+  return AccessResult::neutral();
 }
 
 /**

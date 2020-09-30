@@ -1,5 +1,5 @@
 name: 'OS2Web logging'
-description: 'Logs node access for selected content type access.'
+description: 'Logs access selected content type or webform elements.'
 type: module
 package: 'OS2Web'
 core: 8.x
