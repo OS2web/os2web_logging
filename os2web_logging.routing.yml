@@ -1,5 +1,5 @@
 os2web_logging.status:
-  path: '/admin/config/os2logging/status'
+  path: '/admin/config/system/os2logging/status'
   defaults:
     _controller: '\Drupal\os2web_logging\Controller\LoggingController::statusPage'
     _title: 'OS2Web logging status'
@@ -8,7 +8,7 @@ os2web_logging.status:
   options:
     _admin_route: TRUE
 os2web_logging.settings:
-  path: '/admin/config/os2logging/settings'
+  path: '/admin/config/system/os2logging/settings'
   defaults:
     _form: '\Drupal\os2web_logging\Form\SettingsForm'
     _title: 'OS2Web logging settings'

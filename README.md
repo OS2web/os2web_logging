@@ -17,7 +17,7 @@ File logs are saved in directory: `../logs/`
 It is **required** that this directory exists and is writable.
 
 ## Additional settings
-Settings are available under `admin/config/content/os2web-borgerdk`
+Settings are available under `/admin/config/system/os2logging/settings`
 * **Node types access to keep log of** - Select node type to keep logs of.
 * **Webform fields access to keep log of** - Select webform fields type to keep logs of.
 * **Log anonymous user actions** - If anonymous user actions are being logged

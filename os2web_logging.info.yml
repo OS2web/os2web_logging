@@ -3,7 +3,7 @@ description: 'Logs access selected content type or webform elements.'
 type: module
 package: 'OS2Web'
 core: 8.x
-configure: os2web_logging.admin.settings_form
+configure: os2web_logging.settings
 dependencies:
   - monolog
   - date_popup
