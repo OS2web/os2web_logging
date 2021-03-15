@@ -11,10 +11,10 @@ parameters:
 services:
   monolog.handler.os2web_logging_watchdog:
     class: Monolog\Handler\RotatingFileHandler
-    arguments: ['../logs/os2web_logging_watchdog.log', 60, 'monolog.level.debug']
+    arguments: ['../logs/os2web_logging_watchdog.log', 60, '%monolog.level.debug%']
   monolog.handler.os2web_logging_access_log_file:
     class: Monolog\Handler\RotatingFileHandler
-    arguments: ['../logs/os2web_logging_access_log.log', 60, 'monolog.level.debug']
+    arguments: ['../logs/os2web_logging_access_log.log', 60, '%monolog.level.debug%']
   logger.os2web_logging_access_log_dblog:
     class: Drupal\os2web_logging\Logger\AccessLogsDbLog
     tags:
