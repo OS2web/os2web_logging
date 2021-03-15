@@ -2,11 +2,11 @@
 
 ## Module purpose
 
-The aim of this module is to provide logging of node access.
+The aim of this module is to provide logging of node access and NemID webform fields.
 
 ## How does it work
 
-When node is access this is logged by the module.
+When node or NemID webform field is access this is logged by the module.
 
 Logs are stored in two places: database + files.
 
@@ -17,10 +17,13 @@ File logs are saved in directory: `../logs/`
 It is **required** that this directory exists and is writable.
 
 ## Additional settings
-Settings are available under `admin/config/content/os2web-borgerdk`
-* **Node types to keep log of** - Select node type to keep logs of.
+Settings are available under `/admin/config/system/os2logging/settings`
+* **Node types access to keep log of** - Select node type to keep logs of.
+* **Webform fields access to keep log of** - Select webform fields type to keep logs of.
+* **Log anonymous user actions** - If anonymous user actions are being logged
 * **Store database logs for this period** - Database logs will be stored for the selected number of days, after that they will be automatically deleted (cleanup is done daily).
 * **Store log files for this period** - Log file will be stored for the selected number of days, after that they will be automatically deleted
+* **Store log files directory** - Logs will be saved in this path.
 
 ## Install
 

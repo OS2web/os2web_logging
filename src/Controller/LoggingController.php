@@ -125,7 +125,29 @@ class LoggingController extends ControllerBase {
       $requirements['error'][] = $req;
     }
 
-    // 3. Number of days to store DB logs:
+    // 3. NemID fields.
+    $moduleHandler = \Drupal::service('module_handler');
+    if ($moduleHandler->moduleExists('os2forms_nemid')) {
+      $webform_elements = $config->get('logged_webform_elements');
+      $webform_elements = array_filter($webform_elements);
+
+      $webform_elements_build = [
+        '#theme' => 'item_list',
+        '#title' => t('NemID fields type'),
+        '#items' => $webform_elements,
+      ];
+      $webform_elements_rendered = \Drupal::service('renderer')->renderPlain($webform_elements_build);
+
+      $req = [
+        'title' => t('Selected NemID fields'),
+        'description' => t('These NemID fields access will be logged'),
+      ];
+
+      $req['value'] = !empty($webform_elements) ? $webform_elements_rendered : t('Empty');
+      $requirements['checked'][] = $req;
+    }
+
+    // 4. Number of days to store DB logs:
     $dblogStorePeriod = $config->get('dblogs_store_period');
 
     $req = [
@@ -142,7 +164,7 @@ class LoggingController extends ControllerBase {
       $requirements['error'][] = $req;
     }
 
-    // 3. Number of days to store file logs.
+    // 5. Number of days to store file logs.
     $fileLogsStorePeriod = $config->get('files_store_period');
 
     $req = [
@@ -159,8 +181,8 @@ class LoggingController extends ControllerBase {
       $requirements['error'][] = $req;
     }
 
-    // 4. File directory is writable.
-    $logger = \Drupal::service('monolog.handler.os2web_logging_node_access_file');
+    // 6. File directory is writable.
+    $logger = \Drupal::service('monolog.handler.os2web_logging_access_log_file');
     $logsDir = dirname($logger->getUrl());
     $exists = \Drupal::service('file_system')->prepareDirectory($logsDir, FileSystemInterface::MODIFY_PERMISSIONS);
 

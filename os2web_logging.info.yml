@@ -1,9 +1,10 @@
 name: 'OS2Web logging'
-description: 'Logs node access for selected content type access.'
+description: 'Logs access selected content type or webform elements.'
 type: module
 package: 'OS2Web'
 core: 8.x
-configure: os2web_logging.admin.settings_form
+core_version_requirement: ^8 || ^9
+configure: os2web_logging.settings
 dependencies:
   - monolog
   - date_popup

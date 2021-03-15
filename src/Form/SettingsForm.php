@@ -54,19 +54,40 @@ class SettingsForm extends ConfigFormBase {
     $node_types = NodeType::loadMultiple();
 
     // Node types.
-    $options = [];
+    $nodeTypeOptions = [];
     foreach ($node_types as $node_type) {
-      $options[$node_type->id()] = $node_type->label();
+      $nodeTypeOptions[$node_type->id()] = $node_type->label();
     }
-
-    asort($options);
+    asort($nodeTypeOptions);
 
     $form['logged_node_types'] = [
       '#type' => 'checkboxes',
-      '#title' => $this->t('Node types to keep log of:'),
-      '#options' => $options,
+      '#title' => $this->t('Node types access to keep log of:'),
+      '#options' => $nodeTypeOptions,
       '#default_value' => $config->get('logged_node_types') ? $config->get('logged_node_types') : [],
     ];
+
+    // Webform elements.
+    $moduleHandler = \Drupal::service('module_handler');
+    if ($moduleHandler->moduleExists('os2forms_nemid')) {
+      $webformElementOptions = [];
+      /** @var \Drupal\webform\Plugin\WebformElementManagerInterface $element_manager */
+      $element_manager = \Drupal::service('plugin.manager.webform.element');
+      $webformElements = $element_manager->getDefinitions();
+      foreach ($webformElements as $el) {
+        if ($el['provider'] == 'os2forms_nemid') {
+          $webformElementOptions[$el['id']] = $el['label'];
+        }
+      }
+      asort($webformElementOptions);
+
+      $form['logged_webform_elements'] = [
+        '#type' => 'checkboxes',
+        '#title' => $this->t('Webform fields access to keep log of:'),
+        '#options' => $webformElementOptions,
+        '#default_value' => $config->get('logged_webform_elements') ? $config->get('logged_webform_elements') : [],
+      ];
+    }
 
     $form['log_anonymous_user'] = [
       '#type' => 'checkbox',
@@ -111,7 +132,7 @@ class SettingsForm extends ConfigFormBase {
     $form['file_logs_detail']['files_log_path'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Store log files directory'),
-      '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
+      '#description' => $this->t('Logs will be saved in this path'),
       '#default_value' => $config->get('files_log_path') ? $config->get('files_log_path') : '../logs',
     ];
 
@@ -121,19 +142,19 @@ class SettingsForm extends ConfigFormBase {
         ->t('Logs import'),
     ];
 
-    $options = [];
+    $nodeTypeOptions = [];
     if ($config->get('files_log_path')) {
-      $storedLogFiles = \Drupal::service('file_system')->scanDirectory($config->get('files_log_path'), '/os2web_logging_node_access-\d{4}-\d{2}-\d{2}\.(log|gz)/');
+      $storedLogFiles = \Drupal::service('file_system')->scanDirectory($config->get('files_log_path'), '/os2web_logging_access_log-\d{4}-\d{2}-\d{2}\.(log|gz)/');
 
       foreach ($storedLogFiles as $file) {
-        $options[$file->uri] = $file->filename;
+        $nodeTypeOptions[$file->uri] = $file->filename;
       }
-      arsort($options);
+      arsort($nodeTypeOptions);
     }
 
     $form['logs_import_file_detail']['logs_import_files_select'] = [
       '#type' => 'checkboxes',
-      '#options' => $options,
+      '#options' => $nodeTypeOptions,
       '#title' => $this->t('Import from existing files'),
       '#description' => $this->t('Archived log files will be automatically extracted'),
     ];
