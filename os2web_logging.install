@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * Increase requiest_uri field length.
+ */
+function os2web_logging_update_8801() {
+  $field_spec = [
+    'type' => 'varchar',
+    'length' => '500',
+  ];
+  \Drupal::database()->schema()->changeField('os2web_logging_access_log','request_uri', 'request_uri', $field_spec);
+}
+
+/**
+ * Disable date_popup module.
+ */
+function os2web_logging_update_8802() {
+  \Drupal::service('module_installer')->uninstall(['date_popup']);
+}
