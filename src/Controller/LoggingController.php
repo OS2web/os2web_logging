@@ -5,6 +5,7 @@ namespace Drupal\os2web_logging\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\os2web_logging\Form\SettingsForm;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Provides status page.
@@ -201,6 +202,33 @@ class LoggingController extends ControllerBase {
     }
 
     return $requirements;
+  }
+
+  /**
+   * Download file.
+   *
+   * @param string $filename
+   *   The filename.
+   */
+  public function logfileExport($filename) {
+    $config = $this->config(SettingsForm::$configName);
+
+    // Do some file validation here, like checking for extension.
+
+    // File lives in /files/downloads.
+    $logPath = $config->get('files_log_path');
+
+    $uri = $logPath . '/'. $filename;
+
+    $headers = [
+      'Content-Type' => 'text/csv', // Would want a condition to check for extension and set Content-Type dynamically
+      'Content-Description' => 'File Download',
+      'Content-Disposition' => 'attachment; filename=' . $filename
+    ];
+
+    // Return and trigger file donwload.
+    return new BinaryFileResponse($uri, 200, $headers, true );
+
   }
 
 }

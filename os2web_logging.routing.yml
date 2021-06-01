@@ -16,3 +16,18 @@ os2web_logging.settings:
     _permission: 'administer os2logging settings'
   options:
     _admin_route: TRUE
+os2web_logging.watchdog_settings:
+  path: '/admin/config/system/os2logging/watchdog-settings'
+  defaults:
+    _form: '\Drupal\os2web_logging\Form\WatchdogSettingsForm'
+    _title: 'OS2Web watchdog logging settings'
+  requirements:
+    _permission: 'administer os2logging settings'
+  options:
+    _admin_route: TRUE
+os2web_logging.logfile.download:
+  path: '/os2web_logging/log/{filename}'
+  defaults:
+    _controller: '\Drupal\os2web_logging\Controller\LoggingController::logfileExport'
+  requirements:
+    _permission: 'administer os2logging settings'
