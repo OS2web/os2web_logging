@@ -209,26 +209,26 @@ class LoggingController extends ControllerBase {
    *
    * @param string $filename
    *   The filename.
+   *
+   * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+   *   File ready to be downloaded.
    */
   public function logfileExport($filename) {
     $config = $this->config(SettingsForm::$configName);
 
-    // Do some file validation here, like checking for extension.
-
     // File lives in /files/downloads.
     $logPath = $config->get('files_log_path');
 
-    $uri = $logPath . '/'. $filename;
+    $uri = $logPath . '/' . $filename;
 
     $headers = [
-      'Content-Type' => 'text/csv', // Would want a condition to check for extension and set Content-Type dynamically
+      'Content-Type' => 'text/plain',
       'Content-Description' => 'File Download',
-      'Content-Disposition' => 'attachment; filename=' . $filename
+      'Content-Disposition' => 'attachment; filename=' . $filename,
     ];
 
     // Return and trigger file donwload.
-    return new BinaryFileResponse($uri, 200, $headers, true );
-
+    return new BinaryFileResponse($uri, 200, $headers, TRUE);
   }
 
 }

@@ -86,6 +86,7 @@ class WatchdogSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Store log files directory'),
       '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
       '#default_value' => $config->get('files_log_path') ?? '../logs',
+      '#field_suffix' => '<em>/os2web_logging_watchdog-YYYY-MM-DD.log</em>',
     ];
 
     $options = [];
@@ -110,7 +111,7 @@ class WatchdogSettingsForm extends ConfigFormBase {
     $watchlog_logs_rendered = \Drupal::service('renderer')->renderPlain($watchdog_logs_build);
 
     $form['watchdog_files_details'][] = [
-      '#markup' => $watchlog_logs_rendered
+      '#markup' => $watchlog_logs_rendered,
     ];
 
     return parent::buildForm($form, $form_state);

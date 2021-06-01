@@ -134,6 +134,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Store log files directory'),
       '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
       '#default_value' => $config->get('files_log_path') ? $config->get('files_log_path') : '../logs',
+      '#field_suffix' => '<em>/os2web_logging_access_log-YYYY-MM-DD.log</em>',
     ];
 
     $form['logs_import_file_detail'] = [
@@ -144,9 +145,9 @@ class SettingsForm extends ConfigFormBase {
 
     $options = [];
     if ($config->get('files_log_path')) {
-      /** @var FileSystemInterface $fileSystem */
+      /** @var Drupal\Core\File\FileSystemInterface $fileSystem */
       $fileSystem = \Drupal::service('file_system');
-      $storedLogFiles = $fileSystem->scanDirectory($config->get('files_log_path'), '/os2web_logging_node_access-\d{4}-\d{2}-\d{2}\.(log|gz)/');
+      $storedLogFiles = $fileSystem->scanDirectory($config->get('files_log_path'), '/os2web_logging_(node_access|access_log)-\d{4}-\d{2}-\d{2}\.(log|gz)/');
 
       foreach ($storedLogFiles as $file) {
         $url = Url::fromRoute('os2web_logging.logfile.download', ['filename' => $file->filename]);
