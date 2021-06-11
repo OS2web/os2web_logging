@@ -4,7 +4,6 @@ dependencies:
   config:
     - system.menu.admin
   module:
-    - better_exposed_filters
     - node
     - os2web_logging
     - user
@@ -38,7 +37,7 @@ display:
           query_comment: ''
           query_tags: {  }
       exposed_form:
-        type: bef
+        type: basic
         options:
           submit_button: Udfør
           reset_button: false
@@ -47,47 +46,6 @@ display:
           expose_sort_order: true
           sort_asc_label: Asc
           sort_desc_label: Desc
-          text_input_required: 'Vælg et filter og klik på Anvend for at se resultater'
-          text_input_required_format: wysiwyg_tekst
-          bef:
-            general:
-              autosubmit: false
-              autosubmit_exclude_textfield: false
-              autosubmit_textfield_delay: 500
-              autosubmit_hide: false
-              input_required: false
-              allow_secondary: false
-              secondary_label: 'Avancerede indstillinger'
-              secondary_open: false
-            filter:
-              combine:
-                plugin_id: default
-                advanced:
-                  placeholder_text: ''
-                  collapsible: false
-                  is_secondary: false
-              name:
-                plugin_id: default
-                advanced:
-                  placeholder_text: ''
-                  collapsible: false
-                  is_secondary: false
-              ip:
-                plugin_id: default
-                advanced:
-                  placeholder_text: ''
-                  collapsible: false
-                  is_secondary: false
-              created:
-                plugin_id: default
-                advanced:
-                  collapsible: false
-                  is_secondary: false
-              created_1:
-                plugin_id: default
-                advanced:
-                  collapsible: false
-                  is_secondary: false
       pager:
         type: full
         options:
@@ -720,7 +678,7 @@ display:
           exposed: true
           expose:
             operator_id: created_op
-            label: From
+            label: Period
             description: ''
             use_operator: false
             operator: created_op
@@ -734,21 +692,26 @@ display:
               authenticated: authenticated
               anonymous: '0'
               administrator: '0'
+              editor: '0'
+              webmaster: '0'
             placeholder: ''
             min_placeholder: ''
             max_placeholder: ''
           is_grouped: false
           group_info:
-            label: ''
-            description: ''
-            identifier: ''
+            label: Created
+            description: null
+            identifier: created
             optional: true
             widget: select
             multiple: false
             remember: false
             default_group: All
             default_group_multiple: {  }
-            group_items: {  }
+            group_items:
+              1: {  }
+              2: {  }
+              3: {  }
           entity_type: os2web_logging_access_log
           entity_field: created
           plugin_id: date
@@ -769,7 +732,7 @@ display:
           exposed: true
           expose:
             operator_id: created_1_op
-            label: To
+            label: ''
             description: ''
             use_operator: false
             operator: created_1_op
@@ -783,6 +746,8 @@ display:
               authenticated: authenticated
               anonymous: '0'
               administrator: '0'
+              editor: '0'
+              webmaster: '0'
             placeholder: ''
             min_placeholder: ''
             max_placeholder: ''

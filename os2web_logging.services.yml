@@ -1,7 +1,7 @@
 parameters:
   monolog.channel_handlers:
     # If not specified use the default handlers.
-    default: ['os2web_logging_watchdog']
+    default: ['os2web_logging_watchdog', 'drupal.dblog']
     # Log php channel to web server's error log.
     php: ['error_log']
     os2web_logging.access_log:

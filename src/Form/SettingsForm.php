@@ -132,8 +132,9 @@ class SettingsForm extends ConfigFormBase {
     $form['file_logs_detail']['files_log_path'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Store log files directory'),
-      '#description' => $this->t('Logs will be saved in this path'),
+      '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
       '#default_value' => $config->get('files_log_path') ? $config->get('files_log_path') : '../logs',
+      '#field_suffix' => '<em>/os2web_logging_access_log-YYYY-MM-DD.log</em>',
     ];
 
     $form['logs_import_file_detail'] = [
@@ -142,19 +143,23 @@ class SettingsForm extends ConfigFormBase {
         ->t('Logs import'),
     ];
 
-    $nodeTypeOptions = [];
+    $options = [];
     if ($config->get('files_log_path')) {
-      $storedLogFiles = \Drupal::service('file_system')->scanDirectory($config->get('files_log_path'), '/os2web_logging_access_log-\d{4}-\d{2}-\d{2}\.(log|gz)/');
+      /** @var Drupal\Core\File\FileSystemInterface $fileSystem */
+      $fileSystem = \Drupal::service('file_system');
+      $storedLogFiles = $fileSystem->scanDirectory($config->get('files_log_path'), '/os2web_logging_(node_access|access_log)-\d{4}-\d{2}-\d{2}\.(log|gz)/');
 
       foreach ($storedLogFiles as $file) {
-        $nodeTypeOptions[$file->uri] = $file->filename;
+        $url = Url::fromRoute('os2web_logging.logfile.download', ['filename' => $file->filename]);
+        $link = Link::fromTextAndUrl(t('[Download]'), $url);
+        $options[$file->uri] = $file->filename . ' ' . $link->toString();
       }
-      arsort($nodeTypeOptions);
+      arsort($options);
     }
 
     $form['logs_import_file_detail']['logs_import_files_select'] = [
       '#type' => 'checkboxes',
-      '#options' => $nodeTypeOptions,
+      '#options' => $options,
       '#title' => $this->t('Import from existing files'),
       '#description' => $this->t('Archived log files will be automatically extracted'),
     ];

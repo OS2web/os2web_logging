@@ -5,6 +5,7 @@ namespace Drupal\os2web_logging\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\os2web_logging\Form\SettingsForm;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Provides status page.
@@ -201,6 +202,33 @@ class LoggingController extends ControllerBase {
     }
 
     return $requirements;
+  }
+
+  /**
+   * Download file.
+   *
+   * @param string $filename
+   *   The filename.
+   *
+   * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+   *   File ready to be downloaded.
+   */
+  public function logfileExport($filename) {
+    $config = $this->config(SettingsForm::$configName);
+
+    // File lives in /files/downloads.
+    $logPath = $config->get('files_log_path');
+
+    $uri = $logPath . '/' . $filename;
+
+    $headers = [
+      'Content-Type' => 'text/plain',
+      'Content-Description' => 'File Download',
+      'Content-Disposition' => 'attachment; filename=' . $filename,
+    ];
+
+    // Return and trigger file donwload.
+    return new BinaryFileResponse($uri, 200, $headers, TRUE);
   }
 
 }

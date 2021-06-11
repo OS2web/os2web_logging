@@ -24,6 +24,12 @@ Settings are available under `/admin/config/system/os2logging/settings`
 * **Store database logs for this period** - Database logs will be stored for the selected number of days, after that they will be automatically deleted (cleanup is done daily).
 * **Store log files for this period** - Log file will be stored for the selected number of days, after that they will be automatically deleted
 * **Store log files directory** - Logs will be saved in this path.
+* **Import logs from uploaded file** - Allows import logs into database.
+
+Settings are available under `/admin/config/system/os2logging/watchdog-settings`
+* **DB Log enabled** - If watchdog messages shall be added to the dblog.
+* **Store log files for this period**  - Log file will be stored for the selected number of days, after that they will be automatically deleted
+* **Store log files directory** - Logs will be saved in this path.
 
 ## Install
 

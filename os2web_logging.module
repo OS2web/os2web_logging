@@ -214,15 +214,3 @@ function _os2web_logging_send_status_failed_email(array $errors) {
     \Drupal::logger('os2web_logging')->warning(t('There was a problem sending email to %email', ['%email' => $siteMail]));
   }
 }
-
-/**
- * Increase requiest_uri field lenght().
- */
-function os2web_logging_update_8801() {
-  $field_spec = [
-    'type' => 'varchar',
-    'length' => '500',
-  ];
-  \Drupal::database()->schema()->changeField('os2web_logging_access_log','request_uri', 'request_uri', $field_spec);
- ;
-}

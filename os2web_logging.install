@@ -1,0 +1,42 @@
+<?php
+
+use Symfony\Component\Yaml\Yaml;
+
+/**
+ * Helper function to update configuration.
+ *
+ * @param $config_name
+ *   String.
+ */
+function os2web_logging_read_in_new_config($config_name) {
+  $path = drupal_get_path('module', 'os2web_logging');
+  /** @var \Drupal\Core\Config\StorageInterface $active_storage */
+  $active_storage = \Drupal::service('config.storage');
+  $active_storage->write($config_name, Yaml::parse(file_get_contents($path . '/config/install/' . $config_name . '.yml')));
+}
+
+/**
+ * Increase requiest_uri field length.
+ */
+function os2web_logging_update_8801() {
+  $field_spec = [
+    'type' => 'varchar',
+    'length' => '500',
+  ];
+  \Drupal::database()->schema()->changeField('os2web_logging_access_log','request_uri', 'request_uri', $field_spec);
+}
+
+/**
+ * Disable date_popup module.
+ */
+function os2web_logging_update_8802() {
+  \Drupal::service('module_installer')->uninstall(['date_popup']);
+}
+
+/**
+ * Updating logs search view.
+ */
+function os2web_logging_update_8803() {
+  // Updating view.
+  os2web_logging_read_in_new_config('views.view.os2web_logging_access_logs');
+}
