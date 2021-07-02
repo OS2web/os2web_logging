@@ -96,10 +96,10 @@ function os2web_logging_cron() {
   $last_cleanup_run = DateTimePlus::createFromTimestamp($last_cleanup_run_ts);
   $now = DateTimePlus::createFromTimestamp(time());
 
-  $diff = $last_cleanup_run->diff($now);
+  $cleanupDiff = $last_cleanup_run->diff($now);
 
   // Proceed if the last cleanup happened more than a day ago.
-  if ($diff->days > 0) {
+  if ($cleanupDiff->days > 0) {
     // Do a cleanup.
     _os2web_logging_dblogs_cleanup();
 
@@ -107,10 +107,21 @@ function os2web_logging_cron() {
       ->set('os2web_logging.last_cleanup_run', time());
   }
 
-  // Checking requirements.
-  $requirements = LoggingController::getCheckedRequirements();
-  if (!empty($requirements['error'])) {
-    _os2web_logging_send_status_failed_email($requirements['error']);
+  $last_requirements_check_run_ts = \Drupal::state()
+    ->get('os2web_logging.last_requirements_check_run', 0);
+  $last_requirements_check_run = DateTimePlus::createFromTimestamp($last_requirements_check_run_ts);
+
+  $requirementsCheckDiff = $last_requirements_check_run->diff($now);
+
+  // Proceed if the last requirements check happened more than a day ago.
+  if ($requirementsCheckDiff->days > 0) {
+    // Checking requirements.
+    $requirements = LoggingController::getCheckedRequirements();
+    if (!empty($requirements['error'])) {
+      _os2web_logging_send_status_failed_email($requirements['error']);
+      \Drupal::state()
+        ->set('os2web_logging.last_requirements_check_run', time());
+    }
   }
 }
 
