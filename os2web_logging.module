@@ -7,40 +7,10 @@
 
 use Drupal\Component\Datetime\DateTimePlus;
 use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\os2web_logging\Controller\LoggingController;
 use Drupal\os2web_logging\Form\SettingsForm;
-
-/**
- * Implements hook_ENTITY_TYPE_view().
- */
-function os2web_logging_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
-  // Ignoring requests from CLI.
-  if (PHP_SAPI === 'cli') {
-    return;
-  }
-
-  $config = \Drupal::config(SettingsForm::$configName);
-
-  // Ignore anonymous user.
-  $logAnonymUser = $config->get('log_anonymous_user');
-  if (!$logAnonymUser && \Drupal::currentUser()->isAnonymous()) {
-    return;
-  }
-
-  // Filter on node type.
-  if ($node_types = $config->get('logged_node_types')) {
-    if (in_array($entity->getType(), $node_types, TRUE)) {
-
-      // Log entry.
-      $logger = \Drupal::logger('os2web_logging.access_log');
-      $logger->info('Node loaded', ['sid' => $entity->id()]);
-    }
-  }
-}
 
 /**
  * Implements hook_webform_element_access().

@@ -19,3 +19,8 @@ services:
     class: Drupal\os2web_logging\Logger\AccessLogsDbLog
     tags:
       - { name: logger }
+  os2web_logging.node_access_event_subscriber:
+    class: Drupal\os2web_logging\EventSubscriber\NodeAccessEventSubscriber
+    arguments: []
+    tags:
+      - {name: event_subscriber}
