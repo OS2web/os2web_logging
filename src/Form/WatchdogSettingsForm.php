@@ -21,7 +21,7 @@ class WatchdogSettingsForm extends ConfigFormBase {
    *
    * @var string
    */
-  public static $configName = 'os2web_logging_watchdog.settings';
+  public static $configName = 'os2web_logging.settings';
 
   /**
    * {@inheritdoc}
