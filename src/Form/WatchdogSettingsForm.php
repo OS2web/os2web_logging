@@ -21,7 +21,7 @@ class WatchdogSettingsForm extends ConfigFormBase {
    *
    * @var string
    */
-  public static $configName = 'os2web_logging_watchdog.settings';
+  public static $configName = 'os2web_logging.settings';
 
   /**
    * {@inheritdoc}
@@ -34,7 +34,7 @@ class WatchdogSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'os2web_logging_watchdog_settings_form';
+    return 'os2web_logging_settings_form';
   }
 
   /**
@@ -127,7 +127,7 @@ class WatchdogSettingsForm extends ConfigFormBase {
 
     $exists = \Drupal::service('file_system')->prepareDirectory($files_log_path, FileSystemInterface::MODIFY_PERMISSIONS);
     if (!$exists) {
-      $form_state->setErrorByName('files_log_path', t('Directory does not exist or is not writable %dir', ['%dir' => $files_log_path]));
+      $form_state->setErrorByName('watchdog_files_log_path', t('Directory does not exist or is not writable %dir', ['%dir' => $files_log_path]));
     }
   }
 
