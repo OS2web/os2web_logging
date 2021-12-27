@@ -40,3 +40,19 @@ function os2web_logging_update_8803() {
   // Updating view.
   os2web_logging_read_in_new_config('views.view.os2web_logging_access_logs');
 }
+
+/**
+ * Updating watchdog config.
+ */
+function os2web_logging_update_8804() {
+  $configName = 'os2web_logging_watchdog.settings';
+  $watchdogConfig = \Drupal::config('os2web_logging_watchdog.settings');
+  $store_period = $watchdogConfig->get('files_store_period');
+  $files_log_path = $watchdogConfig->get('files_log_path');
+  $dblog_enabled = $watchdogConfig->get('dblog_enabled');
+  $config_factory = \Drupal::configFactory();
+  $config_factory->getEditable('os2web_logging.settings')->set('watchdog_dblog_enabled',  $dblog_enabled)->save();
+  $config_factory->getEditable('os2web_logging.settings')->set('watchdog_files_store_period',  $store_period)->save();
+  $config_factory->getEditable('os2web_logging.settings')->set('watchdog_files_log_path',  $files_log_path)->save();
+  Drupal::configFactory()->getEditable('os2web_logging_watchdog.settings')->delete();
+}

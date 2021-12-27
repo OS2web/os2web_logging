@@ -50,11 +50,11 @@ class WatchdogSettingsForm extends ConfigFormBase {
       '#open' => TRUE,
     ];
 
-    $form['watchdog_db_details']['dblog_enabled'] = [
+    $form['watchdog_db_details']['watchdog_dblog_enabled'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('DB Log enabled'),
       '#description' => $this->t('If logs are to be stored in the database as dblog entries.'),
-      '#default_value' => $config->get('dblog_enabled') ?? TRUE,
+      '#default_value' => $config->get('watchdog_dblog_enabled') ?? TRUE,
     ];
 
     // Set up the link.
@@ -71,29 +71,29 @@ class WatchdogSettingsForm extends ConfigFormBase {
         ->t('Watchdog File logs'),
     ];
 
-    $form['watchdog_files_details']['files_store_period'] = [
+    $form['watchdog_files_details']['watchdog_files_store_period'] = [
       '#type' => 'number',
       '#title' => $this->t('Store log files for this period'),
       '#field_suffix' => $this->t('days'),
       '#size' => 5,
       '#min' => 180,
       '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
-      '#default_value' => $config->get('files_store_period') ?? 180,
+      '#default_value' => $config->get('watchdog_files_store_period') ?? 180,
     ];
 
-    $form['watchdog_files_details']['files_log_path'] = [
+    $form['watchdog_files_details']['watchdog_files_log_path'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Store log files directory'),
       '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
-      '#default_value' => $config->get('files_log_path') ?? '../logs',
+      '#default_value' => $config->get('watchdog_files_log_path') ?? '../logs',
       '#field_suffix' => '<em>/os2web_logging_watchdog-YYYY-MM-DD.log</em>',
     ];
 
     $options = [];
-    if ($config->get('files_log_path')) {
+    if ($config->get('watchdog_files_log_path')) {
       /** @var FileSystemInterface $fileSystem */
       $fileSystem = \Drupal::service('file_system');
-      $storedLogFiles = $fileSystem->scanDirectory($config->get('files_log_path'), '/os2web_logging_watchdog-\d{4}-\d{2}-\d{2}\.(log|gz)/');
+      $storedLogFiles = $fileSystem->scanDirectory($config->get('watchdog_files_log_path'), '/os2web_logging_watchdog-\d{4}-\d{2}-\d{2}\.(log|gz)/');
 
       foreach ($storedLogFiles as $file) {
         $url = Url::fromRoute('os2web_logging.logfile.download', ['filename' => $file->filename]);
@@ -123,7 +123,7 @@ class WatchdogSettingsForm extends ConfigFormBase {
   public function validateForm(array &$form, FormStateInterface $form_state) {
     parent::validateForm($form, $form_state);
 
-    $files_log_path = $form_state->getValue('files_log_path');
+    $files_log_path = $form_state->getValue('watchdog_files_log_path');
 
     $exists = \Drupal::service('file_system')->prepareDirectory($files_log_path, FileSystemInterface::MODIFY_PERMISSIONS);
     if (!$exists) {
@@ -137,9 +137,9 @@ class WatchdogSettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Saving values.
     $config = $this->config(WatchdogSettingsForm::$configName);
-    $old_files_store_period = $config->get('files_store_period');
-    $old_files_store_path = $config->get('files_log_path');
-    $old_dblog_enabled = $config->get('dblog_enabled');
+    $old_files_store_period = $config->get('watchdog_files_store_period');
+    $old_files_store_path = $config->get('watchdog_files_log_path');
+    $old_dblog_enabled = $config->get('watchdog_dblog_enabled');
 
     $values = $form_state->getValues();
     foreach ($values as $key => $value) {
@@ -149,9 +149,9 @@ class WatchdogSettingsForm extends ConfigFormBase {
 
     // Rebuilding cache only if 'files_store_period' or 'files_log_path'
     // changed. New setting requires cache to be rebuilt.
-    if ($old_files_store_period != $config->get('files_store_period') ||
-      $old_files_store_path != $config->get('files_log_path') ||
-      $old_dblog_enabled != $config->get('dblog_enabled')) {
+    if ($old_files_store_period != $config->get('watchdog_files_store_period') ||
+      $old_files_store_path != $config->get('watchdog_files_log_path') ||
+      $old_dblog_enabled != $config->get('watchdog_dblog_enabled')) {
 
       // Rebuild module and theme data.
       $module_data = \Drupal::service('extension.list.module')->getList();
