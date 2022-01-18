@@ -45,14 +45,14 @@ class Os2webLoggingServiceProvider extends ServiceProviderBase {
     $watchdogLogger = $container->getDefinition('monolog.handler.os2web_logging_watchdog');
 
     // Updating store path for watchdog logger.
-    $logs_path = $watchdogConfig->get('files_log_path');
+    $logs_path = $watchdogConfig->get('watchdog_files_log_path');
     if (!empty($logs_path)) {
       $logs_path .= '/os2web_logging_watchdog.log';
       $watchdogLogger->replaceArgument(0, $logs_path);
     }
 
     // Updating store period for logger.
-    $store_period = $watchdogConfig->get('files_store_period');
+    $store_period = $watchdogConfig->get('watchdog_files_store_period');
     if ($store_period) {
       $watchdogLogger->replaceArgument(1, $store_period);
     }
@@ -63,7 +63,7 @@ class Os2webLoggingServiceProvider extends ServiceProviderBase {
       'os2web_logging_watchdog',
     ];
     // Only add if DB Log enabled.
-    if ($watchdogConfig->get('dblog_enabled')) {
+    if ($watchdogConfig->get('watchdog_dblog_enabled')) {
       $channel_handlers['default'][] = 'drupal.dblog';
     }
     $container->setParameter('monolog.channel_handlers', $channel_handlers);
