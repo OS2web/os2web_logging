@@ -32,6 +32,11 @@ use Drupal\Core\Entity\EntityTypeInterface;
 class AccessLog extends ContentEntityBase implements AccessLogInterface {
 
   /**
+   * Max length for Request URI field.
+   */
+  const REQUEST_URI_FIELD_MAX_LENGTH = 255;
+
+  /**
    * {@inheritdoc}
    */
   public function getCreatedTime() {
@@ -96,7 +101,10 @@ class AccessLog extends ContentEntityBase implements AccessLogInterface {
       ->setLabel(t('Request URI'))
       ->setDescription(t('URI from which the request has been made.'))
       ->setRequired(TRUE)
-      ->setReadOnly(TRUE);
+      ->setReadOnly(TRUE)
+      ->setSettings([
+        'max_length' => self::REQUEST_URI_FIELD_MAX_LENGTH,
+      ]);
 
     // Created field.
     $fields['created'] = BaseFieldDefinition::create('created')
