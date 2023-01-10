@@ -19,7 +19,7 @@ class Os2webLoggingServiceProvider extends ServiceProviderBase {
     // Skipping calls when container is not ready.
     // We need the container to be reader in order to fetch module
     // configuration.
-    if (!\Drupal::hasContainer()) {
+    if (!\Drupal::hasContainer() || !\Drupal::hasService('config.factory')) {
       return;
     }
 
