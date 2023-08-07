@@ -25,7 +25,7 @@ class AccessLogsDbLog implements LoggerInterface {
       $message .= $this->t('Request URI has been truncated due to max_length restriction.') . PHP_EOL;
     }
     AccessLog::create([
-      'sid' => $context['sid'],
+      'sid' => $context['sid'] ?? NULL,
       'uid' => $context['uid'],
       'message' => $message,
       'ip' => mb_substr($context['ip'], 0, 15),

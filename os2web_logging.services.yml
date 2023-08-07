@@ -4,9 +4,7 @@ parameters:
     default: ['os2web_logging_watchdog', 'drupal.dblog']
     # Log php channel to web server's error log.
     php: ['error_log']
-    os2web_logging.access_log:
-      handlers: ['os2web_logging_access_log_file', 'drupal.os2web_logging_access_log_dblog']
-      formatter: 'json'
+    os2web_logging.access_log: ['os2web_logging_access_log_file', 'drupal.os2web_logging_access_log_dblog']
 
 services:
   monolog.handler.os2web_logging_watchdog:
