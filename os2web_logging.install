@@ -9,7 +9,7 @@ use Symfony\Component\Yaml\Yaml;
  *   String.
  */
 function os2web_logging_read_in_new_config($config_name) {
-  $path = drupal_get_path('module', 'os2web_logging');
+  $path = \Drupal::service('extension.list.module')->getPath('os2web_logging');
   /** @var \Drupal\Core\Config\StorageInterface $active_storage */
   $active_storage = \Drupal::service('config.storage');
   $active_storage->write($config_name, Yaml::parse(file_get_contents($path . '/config/install/' . $config_name . '.yml')));
