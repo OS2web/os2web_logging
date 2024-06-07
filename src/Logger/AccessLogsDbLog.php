@@ -17,7 +17,7 @@ class AccessLogsDbLog implements LoggerInterface {
   /**
    * {@inheritdoc}
    */
-  public function log($level, $message, array $context = []) {
+  public function log($level, $message, array $context = []):void {
     if (strlen($context['request_uri']) > AccessLog::REQUEST_URI_FIELD_MAX_LENGTH) {
       $request_uri = $context['request_uri'];
       $context['request_uri'] = substr($request_uri, 0, AccessLog::REQUEST_URI_FIELD_MAX_LENGTH);
