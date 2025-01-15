@@ -136,6 +136,7 @@ function _os2web_logging_dblogs_cleanup() {
 
   // Getting all access logs before accepted storage date.
   $query = \Drupal::entityQuery('os2web_logging_access_log')
+    ->accessCheck(FALSE)
     ->condition('created', $acceptedStorageDate->getTimestamp(), '<');
   $logIds = $query->execute();
 
