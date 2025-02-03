@@ -6,7 +6,6 @@
     "prefer-stable": true,
     "license": "EUPL-1.2",
     "require": {
-        "drupal/date_popup": "^1.1",
         "drupal/monolog": "2.x-dev"
     }
 }
