@@ -6,6 +6,6 @@
     "prefer-stable": true,
     "license": "EUPL-1.2",
     "require": {
-        "drupal/monolog": "2.x-dev"
+        "drupal/monolog": "2.x-dev || ^3.0"
     }
 }
