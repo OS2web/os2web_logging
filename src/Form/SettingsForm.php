@@ -126,7 +126,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Store log files for this period'),
       '#field_suffix' => $this->t('days'),
       '#size' => 5,
-      '#min' => 1,
+      '#min' => 180,
       '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
       '#default_value' => $config->get('files_store_period') ? $config->get('files_store_period') : 180,
     ];

@@ -78,7 +78,7 @@ class WatchdogSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Store log files for this period'),
       '#field_suffix' => $this->t('days'),
       '#size' => 5,
-      '#min' => 1,
+      '#min' => 180,
       '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
       '#default_value' => $config->get('watchdog_files_store_period') ?? 180,
     ];
@@ -95,10 +95,10 @@ class WatchdogSettingsForm extends ConfigFormBase {
     if ($config->get('watchdog_files_log_path')) {
       /** @var FileSystemInterface $fileSystem */
       $fileSystem = \Drupal::service('file_system');
-      $storedLogFiles = $fileSystem->scanDirectory($config->get('watchdog_files_log_path'), '/os2web_logging_watchdog-\d{4}-\d{2}-\d{2}\.(log|gz)/');
+      $storedLogFiles = $fileSystem->scanDirectory($config->get('watchdog_files_log_path'), '/os2web_logging_watchdog-\d{4}-\d{2}-\d{2}\.(log|gz)/', ['recurse' => FALSE]);
 
       foreach ($storedLogFiles as $file) {
-        $url = Url::fromRoute('os2web_logging.logfile.download', ['filename' => $file->filename]);
+        $url = Url::fromRoute('os2web_logging.watchdogfile.download', ['filename' => $file->filename]);
         $link = Link::fromTextAndUrl($file->filename, $url);
         $options[$file->uri] = $link;
       }

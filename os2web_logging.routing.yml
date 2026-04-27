@@ -31,3 +31,9 @@ os2web_logging.logfile.download:
     _controller: '\Drupal\os2web_logging\Controller\LoggingController::logfileExport'
   requirements:
     _permission: 'administer os2logging settings'
+os2web_logging.watchdogfile.download:
+  path: '/os2web_logging/ws-log/{filename}'
+  defaults:
+    _controller: '\Drupal\os2web_logging\Controller\LoggingController::watchdogFileExport'
+  requirements:
+    _permission: 'administer os2logging settings'

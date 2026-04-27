@@ -5,6 +5,7 @@ namespace Drupal\os2web_logging\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\os2web_logging\Form\SettingsForm;
+use Drupal\os2web_logging\Form\WatchdogSettingsForm;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -219,7 +220,40 @@ class LoggingController extends ControllerBase {
     // File lives in /files/downloads.
     $logPath = $config->get('files_log_path');
 
-    $uri = $logPath . '/' . $filename;
+    return $this->fileDownloadStream($logPath, $filename);
+  }
+
+  /**
+   * Download file.
+   *
+   * @param string $filename
+   *   The filename.
+   *
+   * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+   *   File ready to be downloaded.
+   */
+  public function watchdogFileExport($filename) {
+    $config = $this->config(WatchdogSettingsForm::$configName);
+
+    // File lives in /files/downloads.
+    $logPath = $config->get('watchdog_files_log_path');
+
+    return $this->fileDownloadStream($logPath, $filename);
+  }
+
+  /**
+   * Get file download stream.
+   *
+   * @param $path
+   *   Path where file is located.
+   * @param $filename
+   *   Name of the file.
+   *
+   * @return BinaryFileResponse
+   *   File ready to be downloaded.
+   */
+  private function fileDownloadStream($path, $filename) {
+    $uri = $path . '/' . $filename;
 
     $headers = [
       'Content-Type' => 'text/plain',
@@ -227,7 +261,7 @@ class LoggingController extends ControllerBase {
       'Content-Disposition' => 'attachment; filename=' . $filename,
     ];
 
-    // Return and trigger file donwload.
+    // Return and trigger file download.
     return new BinaryFileResponse($uri, 200, $headers, TRUE);
   }
 
