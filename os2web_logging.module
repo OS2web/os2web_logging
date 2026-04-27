@@ -7,6 +7,7 @@
 
 use Drupal\Component\Datetime\DateTimePlus;
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\os2web_logging\Controller\LoggingController;
@@ -90,6 +91,17 @@ function os2web_logging_mail($key, &$message, $params) {
  * Implements hook_cron().
  */
 function os2web_logging_cron() {
+  // Making sure that we have an empty file for today.
+  $handler = \Drupal::service('monolog.handler.os2web_logging_access_log_file');
+  /** @var FileSystemInterface $file_system */
+  $file_system = \Drupal::service('file_system');
+  $url = $handler->getUrl();
+
+  if (!file_exists($url)) {
+    $file_system->saveData('', $url);
+    $file_system->chmod($url, 0664);
+  }
+
   $last_cleanup_run_ts = \Drupal::state()
     ->get('os2web_logging.last_cleanup_run', 0);
 

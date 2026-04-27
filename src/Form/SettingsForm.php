@@ -3,6 +3,8 @@
 namespace Drupal\os2web_logging\Form;
 
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Config\Config;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -124,7 +126,7 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Store log files for this period'),
       '#field_suffix' => $this->t('days'),
       '#size' => 5,
-      '#min' => 180,
+      '#min' => 1,
       '#description' => $this->t('Log file will be stored for the selected number of days, after that they will be automatically deleted'),
       '#default_value' => $config->get('files_store_period') ? $config->get('files_store_period') : 180,
     ];
@@ -147,22 +149,30 @@ class SettingsForm extends ConfigFormBase {
     if ($config->get('files_log_path')) {
       /** @var Drupal\Core\File\FileSystemInterface $fileSystem */
       $fileSystem = \Drupal::service('file_system');
-      $storedLogFiles = $fileSystem->scanDirectory($config->get('files_log_path'), '/os2web_logging_(node_access|access_log)-\d{4}-\d{2}-\d{2}\.(log|gz)/');
 
-      foreach ($storedLogFiles as $file) {
-        $url = Url::fromRoute('os2web_logging.logfile.download', ['filename' => $file->filename]);
-        $link = Link::fromTextAndUrl(t('[Download]'), $url);
-        $options[$file->uri] = $file->filename . ' ' . $link->toString();
+      $files_log_path = $config->get('files_log_path');
+      $exists = $fileSystem->prepareDirectory($files_log_path, FileSystemInterface::CREATE_DIRECTORY);
+      if (!$exists) {
+        \Drupal::messenger()->addError(t('Directory does not exist or is not writable %dir', ['%dir' => $files_log_path]));
       }
-      arsort($options);
-    }
+      else {
+        $storedLogFiles = $fileSystem->scanDirectory($config->get('files_log_path'), '/os2web_logging_(node_access|access_log)-\d{4}-\d{2}-\d{2}\.(log|gz)/');
 
-    $form['logs_import_file_detail']['logs_import_files_select'] = [
-      '#type' => 'checkboxes',
-      '#options' => $options,
-      '#title' => $this->t('Import from existing files'),
-      '#description' => $this->t('Archived log files will be automatically extracted'),
-    ];
+        foreach ($storedLogFiles as $file) {
+          $url = Url::fromRoute('os2web_logging.logfile.download', ['filename' => $file->filename]);
+          $link = Link::fromTextAndUrl(t('[Download]'), $url);
+          $options[$file->uri] = $file->filename . ' ' . $link->toString();
+        }
+        arsort($options);
+
+        $form['logs_import_file_detail']['logs_import_files_select'] = [
+          '#type' => 'checkboxes',
+          '#options' => $options,
+          '#title' => $this->t('Import from existing files'),
+          '#description' => $this->t('Archived log files will be automatically extracted'),
+        ];
+      }
+    }
 
     $form['logs_import_file_detail']['logs_import_file'] = [
       '#type' => 'file',
@@ -181,7 +191,7 @@ class SettingsForm extends ConfigFormBase {
 
     $files_log_path = $form_state->getValue('files_log_path');
 
-    $exists = \Drupal::service('file_system')->prepareDirectory($files_log_path, FileSystemInterface::MODIFY_PERMISSIONS);
+    $exists = \Drupal::service('file_system')->prepareDirectory($files_log_path, FileSystemInterface::CREATE_DIRECTORY);
     if (!$exists) {
       $form_state->setErrorByName('files_log_path', t('Directory does not exist or is not writable %dir', ['%dir' => $files_log_path]));
     }
@@ -235,27 +245,43 @@ class SettingsForm extends ConfigFormBase {
     foreach ($values as $key => $value) {
       $config->set($key, $value);
     }
+
     $config->save();
+    $this->writeSettingsFile($config);
 
     // Rebuilding cache only if 'files_store_period' or 'files_log_path'
     // changed. New setting requires cache to be rebuilt.
     if ($old_files_store_period != $config->get('files_store_period') ||
       $old_files_store_path != $config->get('files_log_path')) {
-      // Rebuild module and theme data.
-      $module_data = \Drupal::service('extension.list.module')->getList();
 
-      $files = [];
-      foreach ($module_data as $name => $extension) {
-        if ($extension->status) {
-          $files[$name] = $extension;
-        }
-      }
-      \Drupal::service('kernel')
-        ->updateModules(\Drupal::moduleHandler()
-          ->getModuleList(), $files);
+      // Automatic cache clear is not possible, ask user to rebuild the cache.
+      $this->messenger()->addWarning($this->t(
+        'Settings saved. Clear cache manually to apply logging service changes.'
+      ));
     }
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Saves the settings into a file.
+   *
+   * @param Config|ImmutableConfig $config
+   * @return void
+   */
+  protected function writeSettingsFile(Config|ImmutableConfig $config): void {
+    $site_path = \Drupal::getContainer()->getParameter('site.path');
+    $settings_file = DRUPAL_ROOT . '/' . $site_path . '/os2web_logging.settings.php';
+
+    $content = "<?php\n\n";
+    $content .= "/**\n";
+    $content .= " * Auto-generated by OS2Web Logging settings form.\n";
+    $content .= " * Do not edit manually.\n";
+    $content .= " */\n\n";
+    $content .= "\$settings['os2web_logging.files_log_path'] = " . var_export($config->get('files_log_path'), TRUE) . ";\n";
+    $content .= "\$settings['os2web_logging.files_store_period'] = " . var_export($config->get('files_store_period'), TRUE) . ";\n";
+
+    file_put_contents($settings_file, $content, LOCK_EX);
   }
 
   /**

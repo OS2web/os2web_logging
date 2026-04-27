@@ -39,6 +39,17 @@ composer require os2web/os2web_logging
 drush en os2web_logging
 ```
 
+Add this to you `settings.php` or `settings.local.php`
+
+```
+if (file_exists($app_root . '/' . $site_path . '/os2web_logging.settings.php')) {
+  include $app_root . '/' . $site_path . '/os2web_logging.settings.php';
+}
+if (file_exists($app_root . '/' . $site_path . '/os2web_logging.watchdog_settings.php')) {
+  include $app_root . '/' . $site_path . '/os2web_logging.watchdog_settings.php';
+}
+```
+
 ## Update
 Updating process for OS2Web Logging is similar to usual Drupal 8 module.
 Use Composer's built-in command for listing packages that have updates available:
