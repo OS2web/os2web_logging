@@ -91,22 +91,13 @@ function os2web_logging_mail($key, &$message, $params) {
  * Implements hook_cron().
  */
 function os2web_logging_cron() {
-  // Making sure that we have an empty file for yesterday.
+  // Making sure that we have an empty file for today.
   $handler = \Drupal::service('monolog.handler.os2web_logging_access_log_file');
-  /** @var FileSystemInterface $file_system */
-  $file_system = \Drupal::service('file_system');
   $url = $handler->getUrl();
 
-  // Replace date in filename with yesterday.
-  $yesterday_url = preg_replace(
-    '/-\d{4}-\d{2}-\d{2}(\.[^.]+)$/',
-    '-' . date('Y-m-d', strtotime('-1 day')) . '$1',
-    $url
-  );
-
-  if ($yesterday_url && !file_exists($yesterday_url)) {
-    $file_system->saveData('', $yesterday_url);
-    $file_system->chmod($yesterday_url, 0664);
+  if (!file_exists($url)) {
+    $logger = \Drupal::logger('os2web_logging.access_log');
+    $logger->info('New file created');
   }
 
   $last_cleanup_run_ts = \Drupal::state()
